@@ -51,7 +51,7 @@ public class DropsProperty : MonoBehaviour
             leftForce = Input.GetKey(KeyCode.A);
             upForce = Input.GetKey(KeyCode.W);
             downForce = Input.GetKey(KeyCode.S);
-            if (MainThread.mainThread.GameStarted){
+            if (MainThread.mainThread.GameStarted && !willShrink && !willSwell){
                 if (rightForce) rb2D.AddForce(new Vector3(r, 0.0f, 0.0f));
                 if (leftForce) rb2D.AddForce(new Vector3(-r, 0.0f, 0.0f));
                 if (upForce) rb2D.AddForce(new Vector3(0.0f, r, 0.0f));
@@ -75,6 +75,10 @@ public class DropsProperty : MonoBehaviour
             this.r += Mathf.Sqrt(Mathf.Pow(deltaX, 2)+Mathf.Pow(deltaY, 2))/collidedR;
             this.gameObject.transform.localScale = new Vector2(this.r, this.r);
             if (this.r>=(collidedR/2+originR)) willSwell = false;
+            if (this.r > 500) {
+                this.r = 150;
+                willSwell = false;
+            }
         }
     }
 

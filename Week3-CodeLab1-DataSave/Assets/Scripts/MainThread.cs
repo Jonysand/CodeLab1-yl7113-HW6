@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -10,6 +11,7 @@ public class MainThread : MonoBehaviour
     public static MainThread mainThread;
     public GameObject Drop;
     public GameObject StartButtonText;
+    public GameObject ScoreRankPanel;
     public int totalDropsAmount = 2;
     public bool GameStarted = false; // To prevent from vanishing when generating drops
     public int score = 0;
@@ -21,6 +23,11 @@ public class MainThread : MonoBehaviour
     private float[] initialDropsRadiusList = new float[11];
     public int currentLevel = 0;
     public int targetScore = 0;
+
+    // For Data Saving
+    private const string PLAY_PREF_KEY_HS = "High Score";
+    private const string FILE_SCORE_RANK = "/score_rank.txt";
+
 
     private void Awake() {
         if(mainThread == null){
@@ -35,25 +42,26 @@ public class MainThread : MonoBehaviour
     void Start()
     {   
         // Screen.SetResolution(1920, 1080, true, 60);
+        ScoreRankPanel.SetActive(false);
         dropsCount = 0;
-        scoreText.GetComponent<Text>().text = score.ToString();
+        scoreText.GetComponent<Text>().text = "Score: "+score.ToString();
         initTarget();
-        targetScoreText.GetComponent<Text>().text = targetScore.ToString();
+        targetScoreText.GetComponent<Text>().text = "Target Score: "+targetScore.ToString();
     }
 
     // Update is called once per frame
     void Update()
     {
-        scoreText.GetComponent<Text>().text = score.ToString();
-        if (dropsCount<=1){
+        scoreText.GetComponent<Text>().text = "Score: "+score.ToString();
+        if (dropsCount<=1 && GameStarted){
             GameStarted = false;
             StartButtonText.GetComponent<Text>().text = "Start";
             if(score<targetScore){
-                scoreText.GetComponent<Text>().text = "Game Over!";
+                gameEnded();
             }else{
                 currentLevel ++;
                 initTarget();
-                targetScoreText.GetComponent<Text>().text = targetScore.ToString();
+                targetScoreText.GetComponent<Text>().text = "Target Score: "+targetScore.ToString();
                 SceneManager.LoadScene("LevelScene");
             }
         }
@@ -98,5 +106,36 @@ public class MainThread : MonoBehaviour
             }else break;
         }
         return System.Convert.ToUInt16(maxPossibleScore*difficulty)+score;
+    }
+
+    // Game Ends, read and saving data
+    private void gameEnded(){
+        scoreText.GetComponent<Text>().text = "Game Over!, Your score is: "+score.ToString();
+        string hsString;
+        if (File.Exists(Application.dataPath+FILE_SCORE_RANK)){
+            hsString = File.ReadAllText(Application.dataPath + FILE_SCORE_RANK);
+        }else {
+            hsString = "0,0,0,0,0,0,0,0,0,";
+        }
+        string[] splitString = hsString.TrimEnd(',').Split(',');
+        int[] scoreRank = Array.ConvertAll(splitString, int.Parse);
+        string scoretext = "";
+        bool highScoreInterted = false;
+        string allScoreString = "";
+        for (int i = 0; i < scoreRank.Length; i++){
+            if (score>scoreRank[i] && !highScoreInterted){
+                for (int j = scoreRank.Length-1; j > i; j--){
+                    scoreRank[j] = scoreRank[j-1];
+                }
+                scoreRank[i] = score;
+                highScoreInterted = true;
+                scoretext += "* ";
+            }
+            scoretext += ("("+(i+1)+")"+". "+'\t'+scoreRank[i]+'\n');
+            allScoreString = allScoreString + scoreRank[i] + ",";
+        }
+        ScoreRankPanel.transform.GetChild(1).GetComponent<Text>().text = scoretext;
+        ScoreRankPanel.SetActive(true);
+        File.WriteAllText(Application.dataPath + FILE_SCORE_RANK, allScoreString);
     }
 }
