@@ -186,7 +186,7 @@ RectTransform:
   m_GameObject: {fileID: 8982037216937424451}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 84.35312, y: 84.35312, z: 0}
+  m_LocalScale: {x: 56.05203, y: 56.05203, z: 0}
   m_Children:
   - {fileID: 8205114575121252383}
   m_Father: {fileID: 0}
@@ -263,7 +263,7 @@ MonoBehaviour:
     type: 3}
   self: {fileID: 0}
   id: 2
-  r: 84.35312
+  r: 56.05203
 --- !u!50 &-5343998547627008486
 Rigidbody2D:
   serializedVersion: 4

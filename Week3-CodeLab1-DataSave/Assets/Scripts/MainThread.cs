@@ -10,7 +10,7 @@ public class MainThread : MonoBehaviour
 {
     public static MainThread mainThread;
     public GameObject Drop;
-    public GameObject StartButtonText;
+    public GameObject StartButton;
     public GameObject ScoreRankPanel;
     public int totalDropsAmount = 2;
     public bool GameStarted = false; // To prevent from vanishing when generating drops
@@ -46,7 +46,9 @@ public class MainThread : MonoBehaviour
         dropsCount = 0;
         scoreText.GetComponent<Text>().text = "Score: "+score.ToString();
         initTarget();
+        loadData(true);
         targetScoreText.GetComponent<Text>().text = "Target Score: "+targetScore.ToString();
+        StartButton.GetComponent<Button>().onClick.AddListener(StartButtonCliked);
     }
 
     // Update is called once per frame
@@ -55,7 +57,7 @@ public class MainThread : MonoBehaviour
         scoreText.GetComponent<Text>().text = "Score: "+score.ToString();
         if (dropsCount<=1 && GameStarted){
             GameStarted = false;
-            StartButtonText.GetComponent<Text>().text = "Start";
+            StartButton.transform.GetChild(0).GetComponent<Text>().text = "Start";
             if(score<targetScore){
                 gameEnded();
             }else{
@@ -80,13 +82,14 @@ public class MainThread : MonoBehaviour
         }
         targetScore = getTargetScore(currentLevel);
     }
+
     // start/pause game
     public void gamestart() {
         GameStarted = !GameStarted;
         if (GameStarted){
-            StartButtonText.GetComponent<Text>().text = "Pause";
+            StartButton.transform.GetChild(0).GetComponent<Text>().text = "Pause";
         }else{
-            StartButtonText.GetComponent<Text>().text = "Start";
+            StartButton.transform.GetChild(0).GetComponent<Text>().text = "Start";
         }
     }
 
@@ -108,9 +111,8 @@ public class MainThread : MonoBehaviour
         return System.Convert.ToUInt16(maxPossibleScore*difficulty)+score;
     }
 
-    // Game Ends, read and saving data
-    private void gameEnded(){
-        scoreText.GetComponent<Text>().text = "Game Over!, Your score is: "+score.ToString();
+    // load rank data
+    private void loadData(bool isInit){
         string hsString;
         if (File.Exists(Application.dataPath+FILE_SCORE_RANK)){
             hsString = File.ReadAllText(Application.dataPath + FILE_SCORE_RANK);
@@ -123,7 +125,7 @@ public class MainThread : MonoBehaviour
         bool highScoreInterted = false;
         string allScoreString = "";
         for (int i = 0; i < scoreRank.Length; i++){
-            if (score>scoreRank[i] && !highScoreInterted){
+            if (score>scoreRank[i] && !highScoreInterted && !isInit){
                 for (int j = scoreRank.Length-1; j > i; j--){
                     scoreRank[j] = scoreRank[j-1];
                 }
@@ -135,7 +137,18 @@ public class MainThread : MonoBehaviour
             allScoreString = allScoreString + scoreRank[i] + ",";
         }
         ScoreRankPanel.transform.GetChild(1).GetComponent<Text>().text = scoretext;
-        ScoreRankPanel.SetActive(true);
         File.WriteAllText(Application.dataPath + FILE_SCORE_RANK, allScoreString);
+    }
+
+    // Game Ends, read and saving data
+    private void gameEnded(){
+        scoreText.GetComponent<Text>().text = "Game Over!, Your score is: "+score.ToString();
+        loadData(false);
+        ScoreRankPanel.SetActive(true);
+    }
+
+    private void StartButtonCliked(){
+        gamestart();
+        ScoreRankPanel.SetActive(GameStarted ? false:true);
     }
 }
